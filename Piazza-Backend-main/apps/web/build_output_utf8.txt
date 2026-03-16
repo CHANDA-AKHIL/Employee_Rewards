@@ -1,0 +1,41 @@
+﻿
+> web@0.0.0 build
+> tsc -b && vite build
+
+src/components/ui/EmptyState.tsx(2,10): error TS1484: 'LucideIcon' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/pages/admin/Analytics.tsx(7,1): error TS6133: 'api' is declared but its value is never read.
+src/pages/admin/Analytics.tsx(21,17): error TS2322: Type '{ week: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(22,17): error TS2322: Type '{ week: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(23,17): error TS2322: Type '{ week: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(24,17): error TS2322: Type '{ week: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(25,17): error TS2322: Type '{ week: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(26,17): error TS2322: Type '{ week: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(27,17): error TS2322: Type '{ week: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(28,17): error TS2322: Type '{ week: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(32,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(33,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(34,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(35,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(36,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(40,17): error TS2322: Type '{ name: string; value: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(41,17): error TS2322: Type '{ name: string; value: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(42,17): error TS2322: Type '{ name: string; value: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(43,17): error TS2322: Type '{ name: string; value: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(47,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(48,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(49,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(50,17): error TS2322: Type '{ name: string; points: number; }' is not assignable to type 'never'.
+src/pages/admin/Analytics.tsx(135,55): error TS6133: 'entry' is declared but its value is never read.
+src/pages/admin/Kpis.tsx(17,47): error TS2304: Cannot find name 'useForm'.
+src/pages/auth/Login.tsx(27,26): error TS2339: Property 'success' does not exist on type 'AxiosResponse<any, any, {}>'.
+src/pages/employee/Dashboard.tsx(4,1): error TS6133: 'Button' is declared but its value is never read.
+src/pages/employee/Dashboard.tsx(29,32): error TS6133: 'transRes' is declared but its value is never read.
+src/pages/employee/Leaderboard.tsx(2,38): error TS2305: Module '"lucide-react"' has no exported member 'Dash'.
+src/pages/employee/Leaderboard.tsx(2,38): error TS6133: 'Dash' is declared but its value is never read.
+src/pages/employee/Rewards.tsx(18,56): error TS2339: Property 'pointsBalance' does not exist on type 'User'.
+src/pages/employee/Rewards.tsx(29,95): error TS2339: Property 'pointsBalance' does not exist on type 'User'.
+src/pages/shared/Notifications.tsx(2,44): error TS2724: '"lucide-react"' has no exported member named 'BellCheck'. Did you mean 'SpellCheck'?
+src/pages/shared/Notifications.tsx(5,32): error TS1484: 'NotificationType' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+vite.config.ts(9,3): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'test' does not exist in type 'UserConfigExport'.

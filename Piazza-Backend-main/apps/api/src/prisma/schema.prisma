@@ -1,0 +1,208 @@
+// ─── Prisma Schema for Employee Reward System ────────
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
+enum KpiStatus {
+  PENDING
+  COMPLETE
+  APPROVED
+  REJECTED
+}
+
+enum RedemptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Employee {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  role          Role     @default(EMPLOYEE)
+  isAdminApproved Boolean @default(true) @map("is_admin_approved")
+  isSuperAdmin  Boolean  @default(false) @map("is_super_admin")
+  department    String?
+  level         Int      @default(1)
+  totalPoints   Int      @default(0) @map("total_points")
+  streakCount   Int      @default(0) @map("streak_count")
+  isDeleted     Boolean  @default(false) @map("is_deleted")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  kpis           Kpi[]
+  redemptions    Redemption[]
+  pointsLedger   PointsLedger[]
+  employeeBadges EmployeeBadge[]
+  leaderboard    Leaderboard?
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+  challenges     ChallengeParticipation[]
+
+  @@map("employees")
+}
+
+model Kpi {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  pointValue  Int       @map("point_value")
+  assignedTo  String    @map("assigned_to")
+  status      KpiStatus @default(PENDING)
+  rejectReason String?  @map("reject_reason")
+  submittedAt DateTime? @map("submitted_at")
+  approvedAt  DateTime? @map("approved_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [assignedTo], references: [id])
+
+  @@map("kpis")
+}
+
+model Reward {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  pointCost   Int      @map("point_cost")
+  category    String?
+  stock       Int      @default(0)
+  imageUrl    String?  @map("image_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  redemptions Redemption[]
+
+  @@map("rewards")
+}
+
+model Redemption {
+  id          String           @id @default(uuid())
+  employeeId  String           @map("employee_id")
+  rewardId    String           @map("reward_id")
+  status      RedemptionStatus @default(PENDING)
+  requestedAt DateTime         @default(now()) @map("requested_at")
+  resolvedAt  DateTime?        @map("resolved_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  reward   Reward   @relation(fields: [rewardId], references: [id])
+
+  @@map("redemptions")
+}
+
+model PointsLedger {
+  id         String   @id @default(uuid())
+  employeeId String   @map("employee_id")
+  points     Int
+  reason     String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("points_ledger")
+}
+
+model Badge {
+  id              String  @id @default(uuid())
+  name            String  @unique
+  description     String?
+  imageUrl        String? @map("image_url")
+  unlockCondition String  @map("unlock_condition") // JSON string describing condition
+
+  employeeBadges EmployeeBadge[]
+
+  @@map("badges")
+}
+
+model EmployeeBadge {
+  id         String   @id @default(uuid())
+  employeeId String   @map("employee_id")
+  badgeId    String   @map("badge_id")
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  badge    Badge    @relation(fields: [badgeId], references: [id])
+
+  @@unique([employeeId, badgeId])
+  @@map("employee_badges")
+}
+
+model Leaderboard {
+  id            String   @id @default(uuid())
+  employeeId    String   @unique @map("employee_id")
+  rank          Int      @default(0)
+  monthlyPoints Int      @default(0) @map("monthly_points")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("leaderboard")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  employeeId String   @map("employee_id")
+  message    String
+  type       String   // KPI_APPROVED, BADGE_UNLOCKED, REWARD_APPROVED, etc.
+  isRead     Boolean  @default(false) @map("is_read")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  adminId     String   @map("admin_id")
+  action      String   // CREATE, UPDATE, DELETE
+  targetTable String   @map("target_table")
+  targetId    String?  @map("target_id")
+  metadata    String?  // JSON string
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  admin Employee @relation(fields: [adminId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Challenge {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  targetPoints Int     @map("target_points")
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  participations ChallengeParticipation[]
+
+  @@map("challenges")
+}
+
+model ChallengeParticipation {
+  id          String   @id @default(uuid())
+  employeeId  String   @map("employee_id")
+  challengeId String   @map("challenge_id")
+  joinedAt    DateTime @default(now()) @map("joined_at")
+  status      String   @default("ACTIVE") // ACTIVE, COMPLETED
+
+  employee  Employee  @relation(fields: [employeeId], references: [id])
+  challenge Challenge @relation(fields: [challengeId], references: [id])
+
+  @@unique([employeeId, challengeId])
+  @@map("challenge_participations")
+}

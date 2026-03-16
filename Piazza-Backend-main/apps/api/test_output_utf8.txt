@@ -1,0 +1,120 @@
+﻿
+> employee-reward-system-api@1.0.0 test
+> jest --forceExit --detectOpenHandles
+
+node.exe : ΓùÅ 
+Validation Warning:
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : 
+NotSpeci    fied: 
+(ΓùÅ Valida    tion 
+Warning::Str    ing) 
+[], RemoteEx    
+ception
+    + 
+FullyQualifiedE    
+rrorId : NativeCo    
+mmandError
+ 
+
+  Unknown option "set
+upFilesAfterSetup" 
+with value undefined 
+was found.
+  This is probably a 
+typing mistake. 
+Fixing it will 
+remove this message.
+
+  Configuration 
+Documentation:
+  https://jestjs.io/d
+ocs/configuration
+
+ΓùÅ Validation 
+Warning:
+
+  Unknown option "set
+upFilesAfterSetup" 
+with value undefined 
+was found.
+  This is probably a 
+typing mistake. 
+Fixing it will 
+remove this message.
+
+  Configuration 
+Documentation:
+  https://jestjs.io/d
+ocs/configuration
+
+PASS src/__tests__/sc
+oringEngine.test.ts
+PASS src/__tests__/au
+th.test.ts
+FAIL src/__tests__/ap
+provalWorkflow.test.t
+s
+  ΓùÅ Test suite 
+failed to run
+
+    [96msrc/__tests_
+_/approvalWorkflow.te
+st.ts[0m:[93m11[0m
+:[93m20[0m - 
+[91merror[0m[90m 
+TS2367: [0mThis 
+comparison appears 
+to be unintentional 
+because the types 
+'"COMPLETE"' and 
+'"PENDING"' have no 
+overlap.
+
+    [7m11[0m       
+      expect(status 
+!== 'PENDING').toBe(t
+rue);
+    [7m  [0m [91m 
+                  ~~~
+~~~~~~~~~~~~~~~~~[0m
+    [96msrc/__tests_
+_/approvalWorkflow.te
+st.ts[0m:[93m30[0m
+:[93m20[0m - 
+[91merror[0m[90m 
+TS2367: [0mThis 
+comparison appears 
+to be unintentional 
+because the types 
+'"PENDING"' and 
+'"COMPLETE"' have no 
+overlap.
+
+    [7m30[0m       
+      expect(status 
+=== 'COMPLETE').toBe(
+false);
+    [7m  [0m [91m 
+                  ~~~
+~~~~~~~~~~~~~~~~~~[0
+m
+
+Test Suites: 1 
+failed, 2 passed, 3 
+total
+Tests:       19 
+passed, 19 total
+Snapshots:   0 total
+Time:        6.344 s
+Ran all test suites.
