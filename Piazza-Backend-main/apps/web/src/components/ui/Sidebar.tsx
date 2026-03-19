@@ -46,13 +46,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 { name: 'Notifications', path: '/admin/notifications', icon: 'fa-bell' },
                 { name: 'Audit Logs', path: '/admin/audit', icon: 'fa-shield-halved' },
             ]
-        }
+        },
     ] : [
         {
             label: 'Main',
             items: [
                 { name: 'Dashboard', path: '/employee/dashboard', icon: 'fa-shapes' },
-                { name: 'Challenges', path: '/employee/challenges', icon: 'fa-bullseye' },
+                // ── KPIs added here — employee must be able to see assigned KPIs ──
+                { name: 'My KPIs', path: '/employee/kpis', icon: 'fa-bullseye' },
+                { name: 'Challenges', path: '/employee/challenges', icon: 'fa-swords' },
                 { name: 'Achievements', path: '/employee/achievements', icon: 'fa-medal' },
                 { name: 'Leaderboard', path: '/employee/leaderboard', icon: 'fa-ranking-star' },
             ]
@@ -69,9 +71,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             items: [
                 { name: 'Profile', path: '/employee/profile', icon: 'fa-user' },
                 { name: 'Analytics', path: '/employee/analytics', icon: 'fa-chart-pie' },
+                { name: 'Notifications', path: '/employee/notifications', icon: 'fa-bell' },
                 { name: 'Settings', path: '/employee/settings', icon: 'fa-gear' },
             ]
-        }
+        },
     ];
 
     return (
@@ -91,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                 )}
             >
-                {/* Logo Section */}
+                {/* Logo */}
                 <div className="p-5 flex items-center gap-3 border-b border-[#1f2540]">
                     <div className="w-9 h-9 bg-gradient-to-br from-[#6c63ff] to-[#ff6584] rounded-xl flex items-center justify-center text-white text-lg">
                         🏆
@@ -104,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     </button>
                 </div>
 
-                {/* Navigation Section */}
+                {/* Navigation */}
                 <nav className="flex-1 overflow-y-auto px-2 py-4 custom-scrollbar">
                     {navGroups.map((group, groupIdx) => (
                         <div key={groupIdx} className="mb-6">
@@ -135,17 +138,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     ))}
                 </nav>
 
-                {/* Footer User Section */}
-                <div className="p-4 border-top border-[#1f2540]">
-                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[#171b2e] border border-[#1f2540] group cursor-pointer transition-colors hover:border-[#6c63ff]/30">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6c63ff] to-[#ff6584] flex items-center justify-center text-white text-xs font-bold">
-                            {user.name.charAt(0)}
+                {/* Footer */}
+                <div className="p-4 border-t border-[#1f2540]">
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[#171b2e] border border-[#1f2540] cursor-pointer transition-colors hover:border-[#6c63ff]/30">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6c63ff] to-[#ff6584] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                            {user.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="text-xs font-bold text-[#e8eaf6] truncate">{user.name}</div>
                             <div className="text-[10px] text-[#6b7280]">{user.role}</div>
                         </div>
-                        <button onClick={clearAuth} className="text-[#6b7280] hover:text-[#ff6584] transition-colors">
+                        <button
+                            onClick={clearAuth}
+                            title="Sign out"
+                            className="text-[#6b7280] hover:text-[#ff6584] transition-colors flex-shrink-0"
+                        >
                             <i className="fa-solid fa-right-from-bracket text-xs"></i>
                         </button>
                     </div>

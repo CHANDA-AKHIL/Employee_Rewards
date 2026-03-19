@@ -20,6 +20,12 @@ interface TrendPoint {
     points: number;
 }
 
+interface ChallengeProgress {
+    challenge: { id: string; title: string; targetPoints: number; endDate: string };
+    earned: number;
+    percentComplete: number;
+}
+
 interface ActivityItem {
     id: string;
     message: string;
@@ -48,6 +54,7 @@ export const EmployeeDashboard: React.FC = () => {
     });
     const [trendData, setTrendData] = useState<TrendPoint[]>([]);
     const [activity, setActivity] = useState<ActivityItem[]>([]);
+    const [featuredChallenge, setFeaturedChallenge] = useState<ChallengeProgress | null>(null);
     const [redemptionCount, setRedemptionCount] = useState(0);
 
     const fetchDashboard = useCallback(async () => {
@@ -55,7 +62,7 @@ export const EmployeeDashboard: React.FC = () => {
         try {
             setLoading(true);
 
-            const [statsEnv, notifEnv, redemptionEnv, trendsEnv] = await Promise.allSettled([
+            const results = await Promise.allSettled([
                 // GET /employees/:id/stats → { totalPoints, level, streakCount, badgesEarned, kpisCompleted, rank }
                 api.get(`/employees/${user.id}/stats`),
                 // GET /notifications?limit=6
@@ -64,7 +71,11 @@ export const EmployeeDashboard: React.FC = () => {
                 api.get('/redemptions'),
                 // GET /analytics/kpi-trends — admin only, catch gracefully
                 api.get('/analytics/kpi-trends').catch(() => null),
+                // GET /gamification/challenges — to find first active one
+                api.get('/gamification/challenges').catch(() => null),
             ]);
+
+            const [statsEnv, notifEnv, redemptionEnv, trendsEnv, challengesEnv] = results as any[];
 
             // ── Stats ─────────────────────────────────────────────────────────
             if (statsEnv.status === 'fulfilled') {
@@ -109,7 +120,19 @@ export const EmployeeDashboard: React.FC = () => {
                     setTrendData(shaped);
                 }
             }
-
+            // ── Featured Challenge ───────────────────────────────────────────
+            if (challengesEnv?.status === 'fulfilled' && challengesEnv.value) {
+                const list = unwrap<any[]>(challengesEnv.value, []);
+                const active = list.find(c => new Date(c.endDate) > new Date());
+                if (active) {
+                    try {
+                        const prog = await api.get(`/gamification/challenges/${active.id}/progress`) as any;
+                        setFeaturedChallenge(unwrap<ChallengeProgress>(prog, null as any));
+                    } catch {
+                        setFeaturedChallenge(null);
+                    }
+                }
+            }
         } catch (err) {
             console.error('Dashboard fetch error:', err);
         } finally {
@@ -234,6 +257,50 @@ export const EmployeeDashboard: React.FC = () => {
                             <span className="text-[10px] font-bold text-[#ff6584] uppercase tracking-wider">Rewards Claimed</span>
                         </div>
                     </div>
+
+                    {/* Featured Challenge */}
+                    {featuredChallenge && (
+                        <div className="glass-panel p-6 bg-gradient-to-r from-[#111420] to-[#171b2e] border-l-4 border-l-[#6c63ff] group transition-all duration-300 hover:shadow-[0_0_20px_rgba(108,99,255,0.1)]">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-14 h-14 rounded-2xl bg-[#6c63ff]/10 flex items-center justify-center text-[#6c63ff] shadow-[0_0_15px_rgba(108,99,255,0.1)] group-hover:scale-110 transition-transform">
+                                        <i className="fa-solid fa-bolt-lightning text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-[10px] font-bold text-[#6c63ff] bg-[#6c63ff]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Active Challenge</span>
+                                            {featuredChallenge.percentComplete >= 100 && (
+                                                <span className="text-[10px] font-bold text-[#43e97b] bg-[#43e97b]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Goal Met! 🎉</span>
+                                            )}
+                                        </div>
+                                        <h3 className="font-syne font-extrabold text-[#e8eaf6] text-lg">{featuredChallenge.challenge.title}</h3>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col md:items-end">
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Current Progress</p>
+                                    <p className="text-2xl font-syne font-extrabold text-[#e8eaf6]">
+                                        {featuredChallenge.earned.toLocaleString()} <span className="text-xs text-gray-500 font-bold">/ {featuredChallenge.challenge.targetPoints.toLocaleString()} pts</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                <div className="flex justify-between text-[11px] font-bold mb-2.5">
+                                    <span className="text-gray-400">{featuredChallenge.percentComplete}% Complete</span>
+                                    <span className="text-gray-500 flex items-center gap-1.5">
+                                        <i className="fa-regular fa-clock text-[#ff6584]"></i>
+                                        Ends {new Date(featuredChallenge.challenge.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                    </span>
+                                </div>
+                                <div className="h-2.5 w-full bg-[#1f2540] rounded-full overflow-hidden p-[2px]">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-[#6c63ff] via-[#a855f7] to-[#ff6584] rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(108,99,255,0.4)]"
+                                        style={{ width: `${Math.max(2, featuredChallenge.percentComplete)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Points trend chart */}
                     <div className="glass-panel p-6">

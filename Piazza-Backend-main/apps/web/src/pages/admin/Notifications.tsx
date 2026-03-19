@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '../../services/api';
 import { useNotificationStore } from '../../store/notificationStore';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface Notification {
     id: string;
     message: string;
@@ -11,11 +10,7 @@ interface Notification {
     createdAt: string;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-// GET /notifications → custom response (not sendPaginated but same structure)
-// → { success, data: Notification[], pagination }
-
-function typeIcon(type: string): { icon: string; color: string } {
+function typeIcon(type: string) {
     switch (type) {
         case 'KPI_APPROVED': return { icon: 'fa-circle-check', color: '#43e97b' };
         case 'KPI_REJECTED': return { icon: 'fa-circle-xmark', color: '#ff6584' };
@@ -27,7 +22,7 @@ function typeIcon(type: string): { icon: string; color: string } {
     }
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string) {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
@@ -38,8 +33,7 @@ function timeAgo(dateStr: string): string {
     return `${days}d ago`;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-export const Notifications: React.FC = () => {
+export const AdminNotifications: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -48,21 +42,15 @@ export const Notifications: React.FC = () => {
 
     const { markAllRead: storeMarkAllRead, markRead: storeMarkRead, setUnreadCount } = useNotificationStore();
 
-    // ── Fetch notifications ───────────────────────────────────────────────────
-    // GET /notifications → { success: true, data: [], pagination }
-    // notificationController returns this shape directly (not via sendPaginated helper,
-    // but manually constructs the same shape)
     const fetchNotifications = useCallback(async () => {
         try {
             setLoading(true);
             setError('');
             const payload = await api.get('/notifications?limit=50') as any;
-            // Both sendPaginated shape and manual shape: payload.data = array
             const list: Notification[] = Array.isArray(payload?.data) ? payload.data : [];
             setNotifications(list);
-            // Sync unread count to store
             setUnreadCount(list.filter(n => !n.isRead).length);
-        } catch (err: any) {
+        } catch {
             setError('Failed to load notifications.');
         } finally {
             setLoading(false);
@@ -71,31 +59,23 @@ export const Notifications: React.FC = () => {
 
     useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
-    // ── Mark single as read ───────────────────────────────────────────────────
-    // PUT /notifications/:id/read
     const handleMarkRead = async (id: string) => {
-        const notif = notifications.find(n => n.id === id);
-        if (!notif || notif.isRead) return;
+        const n = notifications.find(n => n.id === id);
+        if (!n || n.isRead) return;
         try {
             await api.put(`/notifications/${id}/read`);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
             storeMarkRead(id);
-        } catch (err) {
-            console.error('Failed to mark read:', err);
-        }
+        } catch { /* fail silently */ }
     };
 
-    // ── Mark all as read ──────────────────────────────────────────────────────
-    // PUT /notifications/read-all
     const handleMarkAllRead = async () => {
         try {
             setMarkingAll(true);
             await api.put('/notifications/read-all');
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             storeMarkAllRead();
-        } catch (err) {
-            console.error('Failed to mark all read:', err);
-        } finally {
+        } catch { /* fail silently */ } finally {
             setMarkingAll(false);
         }
     };
@@ -103,16 +83,14 @@ export const Notifications: React.FC = () => {
     const shown = filter === 'UNREAD' ? notifications.filter(n => !n.isRead) : notifications;
     const unread = notifications.filter(n => !n.isRead).length;
 
-    // ─────────────────────────────────────────────────────────────────────────
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
 
-            {/* ── Header ── */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-syne font-extrabold text-[#e8eaf6]">Notifications</h1>
                     <p className="text-gray-500 text-sm mt-1">
-                        {unread > 0 ? `${unread} unread notification${unread !== 1 ? 's' : ''}` : 'All caught up!'}
+                        {unread > 0 ? `${unread} unread` : 'All caught up!'}
                     </p>
                 </div>
                 {unread > 0 && (
@@ -130,7 +108,6 @@ export const Notifications: React.FC = () => {
                 )}
             </div>
 
-            {/* ── Error ── */}
             {error && (
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-[#ff6584]/10 border border-[#ff6584]/30 text-[#ff6584] text-sm">
                     <i className="fa-solid fa-circle-exclamation"></i>{error}
@@ -138,28 +115,21 @@ export const Notifications: React.FC = () => {
                 </div>
             )}
 
-            {/* ── Filter tabs ── */}
             <div className="flex gap-2">
                 {([
                     { key: 'ALL', label: `All (${notifications.length})` },
                     { key: 'UNREAD', label: `Unread (${unread})` },
                 ] as const).map(f => (
-                    <button
-                        key={f.key}
-                        onClick={() => setFilter(f.key)}
-                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === f.key
-                            ? 'bg-[#6c63ff] text-white'
-                            : 'bg-[#171b2e] text-gray-500 hover:text-white border border-[#1f2540]'
-                            }`}
-                    >
+                    <button key={f.key} onClick={() => setFilter(f.key)}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === f.key ? 'bg-[#6c63ff] text-white' : 'bg-[#171b2e] text-gray-500 hover:text-white border border-[#1f2540]'
+                            }`}>
                         {f.label}
                     </button>
                 ))}
             </div>
 
-            {/* ── Notifications list ── */}
             {loading ? (
-                <div className="glass-panel overflow-hidden divide-y divide-[#1f2540]">
+                <div className="glass-panel divide-y divide-[#1f2540]">
                     {[...Array(5)].map((_, i) => (
                         <div key={i} className="px-6 py-5 flex items-start gap-4">
                             <div className="w-10 h-10 rounded-full bg-[#1f2540] animate-pulse flex-shrink-0" />
@@ -178,19 +148,6 @@ export const Notifications: React.FC = () => {
                     <h3 className="font-syne font-bold text-[#e8eaf6]">
                         {filter === 'UNREAD' ? 'No unread notifications' : 'No notifications yet'}
                     </h3>
-                    <p className="text-gray-500 text-sm mt-1">
-                        {filter === 'UNREAD'
-                            ? "You're all caught up!"
-                            : 'Notifications will appear here when KPIs are assigned or approved.'}
-                    </p>
-                    {filter === 'UNREAD' && (
-                        <button
-                            onClick={() => setFilter('ALL')}
-                            className="mt-4 px-4 py-2 text-xs font-bold text-[#6c63ff] hover:underline"
-                        >
-                            View all notifications →
-                        </button>
-                    )}
                 </div>
             ) : (
                 <div className="glass-panel overflow-hidden">
@@ -198,25 +155,17 @@ export const Notifications: React.FC = () => {
                         {shown.map(n => {
                             const { icon, color } = typeIcon(n.type);
                             return (
-                                <div
-                                    key={n.id}
-                                    onClick={() => handleMarkRead(n.id)}
-                                    className={`px-6 py-5 flex items-start gap-4 transition-all cursor-pointer group ${!n.isRead
+                                <div key={n.id} onClick={() => handleMarkRead(n.id)}
+                                    className={`px-6 py-5 flex items-start gap-4 cursor-pointer transition-all group ${!n.isRead
                                         ? 'bg-[#6c63ff]/5 hover:bg-[#6c63ff]/10 border-l-4 border-l-[#6c63ff]'
                                         : 'hover:bg-[#171b2e]/50 border-l-4 border-l-transparent'
-                                        }`}
-                                >
-                                    {/* Icon */}
-                                    <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                                        style={{ backgroundColor: `${color}18`, border: `1px solid ${color}30` }}
-                                    >
+                                        }`}>
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                                        style={{ backgroundColor: `${color}18`, border: `1px solid ${color}30` }}>
                                         <i className={`fa-solid ${icon} text-sm`} style={{ color }}></i>
                                     </div>
-
-                                    {/* Content */}
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-sm leading-relaxed ${!n.isRead ? 'font-bold text-[#e8eaf6]' : 'text-gray-300'} group-hover:text-[#e8eaf6] transition-colors`}>
+                                        <p className={`text-sm leading-relaxed ${!n.isRead ? 'font-bold text-[#e8eaf6]' : 'text-gray-300'}`}>
                                             {n.message}
                                         </p>
                                         <div className="flex items-center gap-3 mt-1.5">
@@ -225,17 +174,11 @@ export const Notifications: React.FC = () => {
                                             </span>
                                             <span className="text-[10px] text-gray-700">·</span>
                                             <span className="text-[10px] text-gray-600">
-                                                {new Date(n.createdAt).toLocaleDateString('en-IN', {
-                                                    day: '2-digit', month: 'short', year: 'numeric',
-                                                })}
+                                                {new Date(n.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                             </span>
                                         </div>
                                     </div>
-
-                                    {/* Unread dot */}
-                                    {!n.isRead && (
-                                        <div className="w-2 h-2 rounded-full bg-[#6c63ff] flex-shrink-0 mt-2 animate-pulse" />
-                                    )}
+                                    {!n.isRead && <div className="w-2 h-2 rounded-full bg-[#6c63ff] flex-shrink-0 mt-2 animate-pulse" />}
                                 </div>
                             );
                         })}

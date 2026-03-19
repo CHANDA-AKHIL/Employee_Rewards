@@ -182,6 +182,7 @@ model Challenge {
   id          String   @id @default(uuid())
   title       String
   description String?
+  briefUrl       String?
   targetPoints Int     @map("target_points")
   startDate   DateTime @map("start_date")
   endDate     DateTime @map("end_date")
