@@ -23,7 +23,7 @@ export const authController = {
     // Employee cannot log in until email is verified
     async register(req: Request, res: Response) {
         try {
-            const { name, email, password, role, department } = req.body;
+            const { name, email, password, role, department, organization } = req.body;
 
             if (!name || !email || !password) {
                 return sendError(res, 'Name, email, and password are required', 400);
@@ -60,6 +60,12 @@ export const authController = {
             }
 
             const assignedRole = role || (email.toLowerCase().endsWith('@admin.com') ? 'ADMIN' : 'EMPLOYEE');
+
+            // Enforce: admins must use @admin.com email
+            if (assignedRole === 'ADMIN' && !email.toLowerCase().endsWith('@admin.com')) {
+                return sendError(res, 'Admin accounts require an @admin.com email address.', 400);
+            }
+
             const isSuperAdminEmail = email.toLowerCase() === 'adminsample123@admin.com';
 
             const passwordHash = await bcrypt.hash(password, 12);
@@ -73,10 +79,11 @@ export const authController = {
                     passwordHash,
                     role: assignedRole,
                     department,
+                    organization: organization || null,
                     totalPoints: 0,
                     streakCount: 0,
                     level: 1,
-                    isAdminApproved: assignedRole === 'ADMIN' ? isSuperAdminEmail : true,
+                    isAdminApproved: true,
                     isSuperAdmin: isSuperAdminEmail,
                     // Admins skip email verification — only employees need OTP
                     isEmailVerified: assignedRole === 'ADMIN' ? true : false,

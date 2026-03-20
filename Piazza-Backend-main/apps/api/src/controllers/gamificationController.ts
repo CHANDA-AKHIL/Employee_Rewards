@@ -159,7 +159,7 @@ export const gamificationController = {
             }
 
             // Mark participation as COMPLETED
-            const participation = await gamificationService.submitChallenge(challengeId, employeeId);
+            const participation = await gamificationService.submitChallenge(challengeId, employeeId, submissionUrl);
 
             // Store submission metadata in a notification for the admin to review
             // (Since ChallengeParticipation may not have a submissionUrl field yet,
@@ -202,7 +202,19 @@ export const gamificationController = {
     async listSubmissions(req: AuthRequest, res: Response) {
         try {
             const submissions = await gamificationService.getChallengeSubmissions();
-            return sendSuccess(res, submissions);
+            // Generate signed URLs for any submission files
+            const withUrls = await Promise.all(
+                submissions.map(async (sub: any) => {
+                    if (sub.submissionUrl) {
+                        try {
+                            const url = await s3Service.getSignedUrl(sub.submissionUrl);
+                            return { ...sub, submissionUrl: url };
+                        } catch { return sub; }
+                    }
+                    return sub;
+                })
+            );
+            return sendSuccess(res, withUrls);
         } catch (error: any) {
             return sendError(res, error.message, 500);
         }
@@ -243,7 +255,70 @@ export const gamificationController = {
                 data: { name, description, unlockCondition: conditionStr, imageUrl },
             });
 
+            // ── Retroactive unlock: check all employees against this new badge ──
+            try {
+                const employees = await prisma.employee.findMany({
+                    where: { role: 'EMPLOYEE', isDeleted: false },
+                    select: { id: true, totalPoints: true, streakCount: true },
+                });
+
+                const condition = JSON.parse(conditionStr);
+                let unlockedCount = 0;
+
+                for (const emp of employees) {
+                    let qualifies = false;
+
+                    switch (condition.type) {
+                        case 'points':
+                            qualifies = emp.totalPoints >= condition.threshold;
+                            break;
+                        case 'kpis_completed': {
+                            const kpiCount = await prisma.kpi.count({
+                                where: { assignedTo: emp.id, status: 'APPROVED' },
+                            });
+                            qualifies = kpiCount >= condition.threshold;
+                            break;
+                        }
+                        case 'streak':
+                            qualifies = emp.streakCount >= condition.threshold;
+                            break;
+                    }
+
+                    if (qualifies) {
+                        await prisma.employeeBadge.create({
+                            data: { employeeId: emp.id, badgeId: badge.id },
+                        });
+                        await prisma.notification.create({
+                            data: {
+                                employeeId: emp.id,
+                                message: `🏅 You unlocked the badge: ${badge.name}!`,
+                                type: 'BADGE_UNLOCKED',
+                            },
+                        });
+                        unlockedCount++;
+                    }
+                }
+
+                if (unlockedCount > 0) {
+                    return sendSuccess(res, badge, `Badge created and retroactively unlocked for ${unlockedCount} employee(s)!`, 201);
+                }
+            } catch (e) {
+                // Non-fatal: badge is created, retroactive check just didn't run
+            }
+
             return sendSuccess(res, badge, 'Badge created', 201);
+        } catch (error: any) {
+            return sendError(res, error.message, 500);
+        }
+    },
+
+    async deleteBadge(req: AuthRequest, res: Response) {
+        try {
+            const { id } = req.params;
+            // Delete employee_badge records first (FK constraint)
+            await prisma.employeeBadge.deleteMany({ where: { badgeId: id } });
+            await prisma.badge.delete({ where: { id } });
+            return sendSuccess(res, null, 'Badge deleted');
         } catch (error: any) {
             return sendError(res, error.message, 500);
         }

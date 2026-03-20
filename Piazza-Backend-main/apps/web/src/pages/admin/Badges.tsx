@@ -122,6 +122,18 @@ export const AdminBadges: React.FC = () => {
         setIsModalOpen(true);
     };
 
+    const handleDelete = async (badge: Badge) => {
+        if (!confirm(`Delete badge "${badge.name}"? This will also remove it from any employees who earned it.`)) return;
+        try {
+            await api.delete(`/gamification/badges/${badge.id}`);
+            setSuccessMsg(`Badge "${badge.name}" deleted.`);
+            setTimeout(() => setSuccessMsg(''), 4000);
+            await fetchBadges();
+        } catch (err: any) {
+            setError(err.response?.data?.error || 'Failed to delete badge.');
+        }
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
 
@@ -177,6 +189,14 @@ export const AdminBadges: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                     {badges.map(b => (
                         <div key={b.id} className="group glass-panel p-6 flex flex-col items-center text-center hover:border-[#f59e0b]/30 transition-all relative overflow-hidden">
+                            {/* Delete button */}
+                            <button
+                                onClick={() => handleDelete(b)}
+                                className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-[#ff6584]/10 border border-[#ff6584]/20 flex items-center justify-center text-[#ff6584] opacity-0 group-hover:opacity-100 transition-all hover:bg-[#ff6584]/20 z-20"
+                                title="Delete badge"
+                            >
+                                <i className="fa-solid fa-trash text-[10px]"></i>
+                            </button>
                             <div className="absolute inset-0 bg-gradient-to-br from-[#f59e0b]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="relative mb-4">
                                 <div className="w-20 h-20 rounded-full bg-[#0d0f1a] border border-[#1f2540] p-3 flex items-center justify-center relative z-10 group-hover:scale-110 transition-transform duration-500 shadow-xl">
