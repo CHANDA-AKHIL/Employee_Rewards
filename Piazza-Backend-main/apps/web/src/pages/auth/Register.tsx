@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Shield, User } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -12,8 +12,10 @@ interface RegisterForm {
     email: string;
     password: string;
     confirmPassword: string;
+    organization: string;
 }
 
+type SelectedRole = 'EMPLOYEE' | 'ADMIN';
 type Step = 'register' | 'verify';
 
 export const Register: React.FC = () => {
@@ -26,6 +28,7 @@ export const Register: React.FC = () => {
     const [resending, setResending] = useState(false);
     const [verifyError, setVerifyError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+    const [selectedRole, setSelectedRole] = useState<SelectedRole>('EMPLOYEE');
 
     const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<RegisterForm>();
     const navigate = useNavigate();
@@ -35,16 +38,24 @@ export const Register: React.FC = () => {
     const onSubmit = async (data: RegisterForm) => {
         try {
             setApiError('');
+
+            // Client-side admin email validation
+            if (selectedRole === 'ADMIN' && !data.email.toLowerCase().endsWith('@admin.com')) {
+                setApiError('Admin accounts require an @admin.com email address.');
+                return;
+            }
+
             await api.post('/auth/register', {
                 name: data.name,
                 email: data.email,
                 password: data.password,
+                role: selectedRole,
+                organization: data.organization || undefined,
             });
             setRegisteredEmail(data.email);
             setStep('verify');
         } catch (err: any) {
             const msg = err.response?.data?.error || 'Registration failed';
-            // If account exists but unverified, still go to verify step
             if (err.response?.data?.data?.requiresVerification) {
                 setRegisteredEmail(data.email);
                 setStep('verify');
@@ -181,6 +192,38 @@ export const Register: React.FC = () => {
                 </div>
             )}
 
+            {/* ── Role Toggle ── */}
+            <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-300 mb-2">I am registering as</label>
+                <div className="flex rounded-xl bg-[#111420] border border-[#1f2540] p-1 gap-1">
+                    <button
+                        type="button"
+                        onClick={() => setSelectedRole('EMPLOYEE')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                            selectedRole === 'EMPLOYEE'
+                                ? 'bg-[#6c63ff] text-white shadow-lg shadow-[#6c63ff]/25'
+                                : 'text-gray-400 hover:text-gray-200'
+                        }`}
+                    >
+                        <User size={16} />
+                        Employee
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedRole('ADMIN')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                            selectedRole === 'ADMIN'
+                                ? 'bg-[#7c3aed] text-white shadow-lg shadow-[#7c3aed]/25'
+                                : 'text-gray-400 hover:text-gray-200'
+                        }`}
+                    >
+                        <Shield size={16} />
+                        Admin
+                    </button>
+                </div>
+
+            </div>
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Full Name</label>
@@ -195,7 +238,7 @@ export const Register: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
                     <Input
                         type="email"
-                        placeholder="you@company.com"
+                        placeholder={selectedRole === 'ADMIN' ? 'you@admin.com' : 'you@company.com'}
                         {...register('email', {
                             required: 'Email is required',
                             pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email address' },
@@ -203,7 +246,21 @@ export const Register: React.FC = () => {
                         error={errors.email?.message}
                     />
                     <p className="text-[10px] text-gray-600 mt-1">
-                        A verification OTP will be sent to this email.
+                        {selectedRole === 'ADMIN'
+                            ? 'Must use an @admin.com email address.'
+                            : 'A verification OTP will be sent to this email.'}
+                    </p>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Organization Name</label>
+                    <Input
+                        placeholder="Acme Corporation"
+                        {...register('organization')}
+                        error={errors.organization?.message}
+                    />
+                    <p className="text-[10px] text-gray-600 mt-1">
+                        Your company or team name.
                     </p>
                 </div>
 
@@ -241,7 +298,7 @@ export const Register: React.FC = () => {
 
                 <Button type="submit" className="w-full bg-[#6c63ff] hover:bg-[#5b54d6]" isLoading={isSubmitting}>
                     <i className="fa-solid fa-paper-plane mr-2"></i>
-                    Register & Send OTP
+                    {selectedRole === 'ADMIN' ? 'Register as Admin' : 'Register & Send OTP'}
                 </Button>
 
                 <p className="text-center text-sm text-gray-400 mt-4">

@@ -18,6 +18,7 @@ interface Submission {
     id: string;
     status: string;
     joinedAt: string;
+    submissionUrl?: string | null;
     employee: { id: string; name: string; email: string; department?: string | null };
     challenge: { id: string; title: string; targetPoints: number };
 }
@@ -379,19 +380,28 @@ export const AdminChallenges: React.FC = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    {sub.status === 'COMPLETED' ? (
-                                                        <button onClick={() => handleApprove(sub.id, sub.employee.name)}
-                                                            disabled={approveLoading === sub.id}
-                                                            className="flex items-center gap-2 px-4 py-2 bg-[#43e97b]/10 text-[#43e97b] hover:bg-[#43e97b] hover:text-white border border-[#43e97b]/20 rounded-lg font-bold text-xs transition-all disabled:opacity-40 ml-auto">
-                                                            {approveLoading === sub.id
-                                                                ? <span className="w-3 h-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                                                                : <i className="fa-solid fa-check"></i>
-                                                            }
-                                                            Verify
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-[10px] text-gray-600 font-bold">✓ Verified</span>
-                                                    )}
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        {sub.submissionUrl && (
+                                                            <a href={sub.submissionUrl} target="_blank" rel="noopener noreferrer"
+                                                                className="flex items-center gap-1.5 px-3 py-2 bg-[#6c63ff]/10 text-[#6c63ff] hover:bg-[#6c63ff]/20 border border-[#6c63ff]/20 rounded-lg font-bold text-xs transition-all">
+                                                                <i className="fa-solid fa-file-arrow-down"></i>
+                                                                View File
+                                                            </a>
+                                                        )}
+                                                        {sub.status === 'COMPLETED' ? (
+                                                            <button onClick={() => handleApprove(sub.id, sub.employee.name)}
+                                                                disabled={approveLoading === sub.id}
+                                                                className="flex items-center gap-2 px-4 py-2 bg-[#43e97b]/10 text-[#43e97b] hover:bg-[#43e97b] hover:text-white border border-[#43e97b]/20 rounded-lg font-bold text-xs transition-all disabled:opacity-40">
+                                                                {approveLoading === sub.id
+                                                                    ? <span className="w-3 h-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                                                                    : <i className="fa-solid fa-check"></i>
+                                                                }
+                                                                Approve
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-[10px] text-gray-600 font-bold">✓ Approved</span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

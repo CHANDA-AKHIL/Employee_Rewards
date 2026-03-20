@@ -21,7 +21,7 @@ export const gamificationService = {
 
         const [allEmployees, leaderboardEntries, total] = await Promise.all([
             prisma.employee.findMany({
-                where: { isDeleted: false },
+                where: { isDeleted: false, role: 'EMPLOYEE' },
                 select: { id: true, name: true, department: true, level: true, totalPoints: true },
                 orderBy: { totalPoints: 'desc' },
                 skip,
@@ -30,7 +30,7 @@ export const gamificationService = {
             prisma.leaderboard.findMany({
                 select: { employeeId: true, monthlyPoints: true, rank: true },
             }),
-            prisma.employee.count({ where: { isDeleted: false } }),
+            prisma.employee.count({ where: { isDeleted: false, role: 'EMPLOYEE' } }),
         ]);
 
         const lbMap = new Map<string, { monthlyPoints: number; rank: number }>();
@@ -107,6 +107,22 @@ export const gamificationService = {
 
         if (!challenge) return null;
 
+        // If approved, progress is 100% — the work is done
+        if (participation?.status === 'APPROVED') {
+            return {
+                challenge,
+                participation,
+                joined: true,
+                earned: challenge.targetPoints,
+                currentPoints: challenge.targetPoints,
+                target: challenge.targetPoints,
+                targetPoints: challenge.targetPoints,
+                percentComplete: 100,
+                progress: 100,
+                status: 'APPROVED',
+            };
+        }
+
         const pointsInPeriod = await prisma.pointsLedger.aggregate({
             _sum: { points: true },
             where: {
@@ -133,8 +149,6 @@ export const gamificationService = {
             percentComplete: pct,
             progress: pct,
             status: participation?.status || 'NOT_JOINED',
-            // submissionUrl stored in participation.notes field if schema supports it
-            // otherwise we rely on status = 'COMPLETED' as indicator
         };
     },
 
@@ -159,7 +173,7 @@ export const gamificationService = {
     },
 
     // ── Employee submits challenge (text note only if no file field in schema) ─
-    async submitChallenge(challengeId: string, employeeId: string) {
+    async submitChallenge(challengeId: string, employeeId: string, submissionUrl?: string) {
         const participation = await prisma.challengeParticipation.findUnique({
             where: { employeeId_challengeId: { employeeId, challengeId } },
         });
@@ -169,7 +183,7 @@ export const gamificationService = {
 
         return prisma.challengeParticipation.update({
             where: { employeeId_challengeId: { employeeId, challengeId } },
-            data: { status: 'COMPLETED' },
+            data: { status: 'COMPLETED', submissionUrl: submissionUrl || null },
         });
     },
 
@@ -206,13 +220,39 @@ export const gamificationService = {
             data: { status: 'APPROVED' },
         });
 
+        const points = participation.challenge.targetPoints;
+        const employeeId = participation.employeeId;
+
+        // 1. Write to points ledger
+        await prisma.pointsLedger.create({
+            data: {
+                employeeId,
+                points,
+                reason: `Challenge Completed: ${participation.challenge.title}`,
+            },
+        });
+
+        // 2. Update employee total points
+        const updatedEmployee = await prisma.employee.update({
+            where: { id: employeeId },
+            data: { totalPoints: { increment: points } },
+        });
+
+        // 3. Notify employee with points info
         await prisma.notification.create({
             data: {
-                employeeId: participation.employeeId,
-                message: `🏆 Your submission for "${participation.challenge.title}" has been verified!`,
+                employeeId,
+                message: `🏆 Your submission for "${participation.challenge.title}" has been approved! You earned ${points} points!`,
                 type: 'CHALLENGE_COMPLETED',
             },
         });
+
+        // 4. Evaluate badge unlocks
+        const { scoringEngine } = require('./scoringEngine');
+        await scoringEngine.evaluateBadges(employeeId, updatedEmployee.totalPoints);
+
+        // 5. Recalculate leaderboard
+        await scoringEngine.recalculateLeaderboard();
 
         return updated;
     },

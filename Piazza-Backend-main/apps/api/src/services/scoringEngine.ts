@@ -185,30 +185,47 @@ export const scoringEngine = {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        // Get monthly points per employee
+        // Get ALL non-deleted employees
+        const allEmployees = await prisma.employee.findMany({
+            where: { isDeleted: false, role: 'EMPLOYEE' },
+            select: { id: true, totalPoints: true },
+        });
+
+        // Get monthly points per employee from ledger
         const monthlyPoints = await prisma.pointsLedger.groupBy({
             by: ['employeeId'],
             _sum: { points: true },
             where: {
                 createdAt: { gte: startOfMonth },
             },
-            orderBy: {
-                _sum: { points: 'desc' },
-            },
         });
 
-        // Upsert leaderboard entries
-        for (let i = 0; i < monthlyPoints.length; i++) {
-            const entry = monthlyPoints[i];
+        const monthlyMap = new Map<string, number>();
+        for (const entry of monthlyPoints) {
+            monthlyMap.set(entry.employeeId, entry._sum.points || 0);
+        }
+
+        // Build ranked list: sort by monthly points desc, then totalPoints desc
+        const ranked = allEmployees
+            .map(emp => ({
+                employeeId: emp.id,
+                monthlyPoints: monthlyMap.get(emp.id) || 0,
+                totalPoints: emp.totalPoints,
+            }))
+            .sort((a, b) => b.monthlyPoints - a.monthlyPoints || b.totalPoints - a.totalPoints);
+
+        // Upsert leaderboard entries for ALL employees
+        for (let i = 0; i < ranked.length; i++) {
+            const entry = ranked[i];
             await prisma.leaderboard.upsert({
                 where: { employeeId: entry.employeeId },
                 update: {
-                    monthlyPoints: entry._sum.points || 0,
+                    monthlyPoints: entry.monthlyPoints,
                     rank: i + 1,
                 },
                 create: {
                     employeeId: entry.employeeId,
-                    monthlyPoints: entry._sum.points || 0,
+                    monthlyPoints: entry.monthlyPoints,
                     rank: i + 1,
                 },
             });

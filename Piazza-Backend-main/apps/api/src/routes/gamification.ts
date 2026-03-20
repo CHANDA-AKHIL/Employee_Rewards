@@ -16,6 +16,7 @@ router.use(verifyJWT);
 router.get('/badges/mine', gamificationController.myBadges);
 router.get('/badges', gamificationController.listBadges);
 router.post('/badges', roleGuard('ADMIN'), upload.single('image'), gamificationController.createBadge);
+router.delete('/badges/:id', roleGuard('ADMIN'), gamificationController.deleteBadge);
 
 // ── Leaderboard ────────────────────────────────────────────────────────────────
 router.get('/leaderboard/me', gamificationController.myRank);
