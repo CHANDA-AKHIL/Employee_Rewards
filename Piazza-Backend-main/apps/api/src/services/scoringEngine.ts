@@ -122,7 +122,7 @@ export const scoringEngine = {
                 where: { employeeId },
                 select: { badgeId: true },
             })
-        ).map((eb) => eb.badgeId);
+        ).map((eb: any) => eb.badgeId);
 
         const kpiCount = await prisma.kpi.count({
             where: { assignedTo: employeeId, status: 'APPROVED' },
@@ -207,12 +207,12 @@ export const scoringEngine = {
 
         // Build ranked list: sort by monthly points desc, then totalPoints desc
         const ranked = allEmployees
-            .map(emp => ({
+            .map((emp: any) => ({
                 employeeId: emp.id,
                 monthlyPoints: monthlyMap.get(emp.id) || 0,
                 totalPoints: emp.totalPoints,
             }))
-            .sort((a, b) => b.monthlyPoints - a.monthlyPoints || b.totalPoints - a.totalPoints);
+            .sort((a: any, b: any) => b.monthlyPoints - a.monthlyPoints || b.totalPoints - a.totalPoints);
 
         // Upsert leaderboard entries for ALL employees
         for (let i = 0; i < ranked.length; i++) {

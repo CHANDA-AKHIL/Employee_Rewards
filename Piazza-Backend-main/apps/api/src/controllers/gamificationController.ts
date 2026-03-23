@@ -11,7 +11,7 @@ export const gamificationController = {
         try {
             const badges = await gamificationService.getAllBadges();
             const badgesWithUrls = await Promise.all(
-                badges.map(async (badge) => {
+                badges.map(async (badge: any) => {
                     if (badge.imageUrl) {
                         try {
                             const url = await s3Service.getSignedUrl(badge.imageUrl);

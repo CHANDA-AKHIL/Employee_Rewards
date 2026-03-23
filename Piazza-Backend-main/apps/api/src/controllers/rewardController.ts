@@ -26,7 +26,7 @@ export const rewardController = {
 
             // Generate signed URLs for images
             const rewardsWithUrls = await Promise.all(
-                rewards.map(async (reward) => {
+                rewards.map(async (reward: any) => {
                     if (reward.imageUrl) {
                         try {
                             const signedUrl = await s3Service.getSignedUrl(reward.imageUrl);

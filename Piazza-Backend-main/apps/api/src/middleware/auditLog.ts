@@ -26,7 +26,7 @@ export function auditLog(action: string, targetTable: string) {
                             }),
                         },
                     })
-                    .catch((err) => {
+                    .catch((err: any) => {
                         logger.error('Failed to write audit log', err);
                     });
             }

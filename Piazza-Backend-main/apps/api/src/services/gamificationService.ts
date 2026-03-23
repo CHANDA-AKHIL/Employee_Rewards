@@ -38,7 +38,7 @@ export const gamificationService = {
             lbMap.set(entry.employeeId, { monthlyPoints: entry.monthlyPoints, rank: entry.rank });
         }
 
-        const entries = allEmployees.map((emp, index) => {
+        const entries = allEmployees.map((emp: any, index: number) => {
             const lb = lbMap.get(emp.id);
             return {
                 id: emp.id,
