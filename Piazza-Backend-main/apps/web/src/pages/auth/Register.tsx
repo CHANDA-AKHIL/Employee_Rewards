@@ -45,15 +45,21 @@ export const Register: React.FC = () => {
                 return;
             }
 
-            await api.post('/auth/register', {
+            const response: any = await api.post('/auth/register', {
                 name: data.name,
                 email: data.email,
                 password: data.password,
                 role: selectedRole,
                 organization: data.organization || undefined,
             });
-            setRegisteredEmail(data.email);
-            setStep('verify');
+            
+            if (response && response.data && response.data.requiresVerification === false) {
+                // Admins don't need OTP verification
+                navigate('/login');
+            } else {
+                setRegisteredEmail(data.email);
+                setStep('verify');
+            }
         } catch (err: any) {
             const msg = err.response?.data?.error || 'Registration failed';
             if (err.response?.data?.data?.requiresVerification) {

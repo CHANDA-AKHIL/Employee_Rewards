@@ -67,7 +67,7 @@ export const AdminBadges: React.FC = () => {
     const [selectedPreset, setSelectedPreset] = useState<string>('');
     const [conditionMode, setConditionMode] = useState<'preset' | 'custom'>('preset');
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm();
+    const { register, handleSubmit, reset, setValue, formState: { isSubmitting } } = useForm();
 
     const fetchBadges = useCallback(async () => {
         try {

@@ -15,34 +15,10 @@ interface Kpi {
     approvedAt?: string | null;
 }
 
-interface LedgerEntry {
-    id: string;
-    points: number;
-    reason: string;
-    createdAt: string;
-}
 
 interface TrendPoint {
     date: string;
     points: number;
-}
-
-function unwrap<T>(env: any, fallback: T): T {
-    if (env && 'data' in env) return (env.data as T) ?? fallback;
-    return (env as T) ?? fallback;
-}
-
-function groupByMonth(entries: LedgerEntry[]): TrendPoint[] {
-    const map: Record<string, number> = {};
-    for (const e of entries) {
-        if (e.points <= 0) continue;
-        const d = new Date(e.createdAt);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        map[key] = (map[key] || 0) + e.points;
-    }
-    return Object.entries(map)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, points]) => ({ date, points }));
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -59,7 +35,6 @@ export const EmployeeAnalytics: React.FC = () => {
     const user = useAuthStore(s => s.user);
 
     const [kpis, setKpis] = useState<Kpi[]>([]);
-    const [ledger, setLedger] = useState<LedgerEntry[]>([]);
     const [trend, setTrend] = useState<TrendPoint[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');

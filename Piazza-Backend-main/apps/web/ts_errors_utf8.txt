@@ -1,0 +1,6 @@
+﻿src/pages/admin/Badges.tsx(70,54): error TS6133: 'watch' is declared but its value is never read.
+src/pages/admin/Leaderboard.tsx(102,31): error TS6133: 'isFirst' is declared but its value is never read.
+src/pages/employee/Analytics.tsx(30,10): error TS6133: 'unwrap' is declared but its value is never read.
+src/pages/employee/Analytics.tsx(35,10): error TS6133: 'groupByMonth' is declared but its value is never read.
+src/pages/employee/Analytics.tsx(62,12): error TS6133: 'ledger' is declared but its value is never read.
+src/pages/employee/Analytics.tsx(62,20): error TS6133: 'setLedger' is declared but its value is never read.

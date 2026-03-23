@@ -99,7 +99,6 @@ export const AdminLeaderboard: React.FC = () => {
             {!loading && topThree.length >= 3 && (
                 <div className="flex justify-center items-end gap-4 h-44">
                     {[topThree[1], topThree[0], topThree[2]].map((item, i) => {
-                        const isFirst = i === 1;
                         const colors = ['#cbd5e1', '#f59e0b', '#b45309'];
                         const heights = ['h-28', 'h-40', 'h-24'];
                         const labels = ['2nd', '1st', '3rd'];
