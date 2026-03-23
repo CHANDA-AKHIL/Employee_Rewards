@@ -11,7 +11,11 @@ export interface AuthPayload {
 }
 
 export interface AuthRequest extends Request {
-    user?: AuthPayload;
+  user?: {
+    id: string;
+    role: string;
+    email?: string;
+  };
 }
 
 export async function verifyJWT(req: AuthRequest, res: Response, next: NextFunction) {

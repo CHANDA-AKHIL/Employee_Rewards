@@ -6,7 +6,7 @@ import { AuthRequest } from '../middleware/verifyJWT';
 export const adminApprovalController = {
     async listPendingAdmins(req: AuthRequest, res: Response) {
         try {
-            if (!req.user?.isSuperAdmin) {
+            if (!(req.user as any)?.isSuperAdmin) {
                 return sendError(res, 'Unprivileged access: Super Admin only', 403);
             }
 
@@ -33,7 +33,7 @@ export const adminApprovalController = {
 
     async approveAdmin(req: AuthRequest, res: Response) {
         try {
-            if (!req.user?.isSuperAdmin) {
+            if (!(req.user as any)?.isSuperAdmin) {
                 return sendError(res, 'Unprivileged access: Super Admin only', 403);
             }
 
