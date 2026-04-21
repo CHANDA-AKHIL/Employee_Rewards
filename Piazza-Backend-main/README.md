@@ -93,6 +93,3 @@ docker-compose up -d
 | **Super Admin** | `adminsample123@admin.com` | `admin123` |
 | **Staff Member** | `sampletest123@gmail.com` | `sample123` |
 
----
-
-Built with ❤️ by Nithish & Antigravity.

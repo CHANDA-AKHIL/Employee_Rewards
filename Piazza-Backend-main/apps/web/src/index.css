@@ -10,8 +10,7 @@
   --color-surface: #111420;
   --color-surface-hover: #171b2e;
   --color-border: #1f2540;
-  --font-syne: "Syne", sans-serif;
-  --font-dm: "DM Sans", sans-serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
 }
 
 :root {
@@ -30,15 +29,19 @@
   --glow: 0 0 24px rgba(108,99,255,0.18);
 }
 
+* {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, .font-syne {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 /* Custom Scrollbar */
