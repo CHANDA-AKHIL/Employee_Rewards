@@ -1,95 +1,82 @@
-# 🌟 Piazza Rewards Ecosystem
+# 🎨 Piazza Rewards — Frontend
 
-A high-fidelity, full-stack **Employee Reward and Gamification Platform**. This system features a dual-role dashboard (Staff & Admin), real-time leaderboard updates, badge unlock animations, and a hierarchical admin approval system.
-
----
-
-## 🚀 Quick Start (One-Click Launch)
-
-For Windows users, starting the entire ecosystem (Backend + Frontend + Browser) is as simple as clicking a button:
-
-1.  **Open the project folder.**
-2.  **Double-click `run_me.bat`.**
-3.  The script will automatically:
-    - Start the **Node.js API Server**.
-    - Start the **Vite React Frontend**.
-    - Open the application directly in **Google Chrome** at `http://localhost:5173`.
+**Live URL:** https://employee-rewards.vercel.app
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### Frontend
-- **React 18** + **TypeScript** + **Vite**
-- **Tailwind CSS** (Liquid Glass & Dark Mode Aesthetics)
-- **Zustand** (State Management)
-- **Lucide React** (Premium Icons)
-- **Socket.io-client** (Real-time events)
-
-### Backend
-- **Node.js** + **Express** + **Prisma ORM**
-- **PostgreSQL** (Relational Database)
-- **Redis** (Session & JWT Management)
-- **Socket.io** (Engagement Engine)
-- **Docker Compose** (Containerized Infrastructure)
-
----
-
-## 👔 Admin Approval Hierarchy
-
-This project features a secure **Super Admin** system:
-- **Admin 1 (Super Admin)**: Identified by `adminsample123@admin.com`. This is the "Boss" account.
-- **Approval Workflow**: Any person registering with an `@admin.com` email is placed in a `PENDING` state. They cannot log in until the **Super Admin** approves them from the **Admin Request Inbox**.
-- **Permanent Access**: Once approved, admins gain full access to create KPIs, manage staff, and assign challenges.
+| Technology             | Purpose 
+|------------------------|---------------------------
+| React 18 + TypeScript  | UI framework
+| Vite 8                 | Build tool & dev server  
+| Tailwind CSS 4         | Utility-first styling 
+| Zustand                | Global state management 
+| React Router v7        | Client-side routing 
+| Socket.io-client       | Real-time leaderboard updates 
+| Axios                  | HTTP client 
+| Recharts               | Analytics visualizations 
+| Lucide React           | Icon library 
+| React Hook Form        | Form handling 
 
 ---
 
-## 🎮 Gamification Features
 
-- **Real-time Leaderboard**: See point rankings update instantly as KPIs are approved.
-- **Interactive Badges**: Unlock visual badges with unique animations.
-- **Vivid Motion Background**: A premium, motion-reactive background replaces static designs.
-- **Acceptable Challenges**: Staff must explicitly "Accept" challenges before their progress is tracked, adding to the interactive game feel.
+## Key Features
+
+- **Dual Dashboard** — Separate views for Admin and Employee roles
+- **Real-time Leaderboard** — Updates instantly via Socket.io
+- **Badge System** — Visual unlock celebrations
+- **KPI Management** — Full workflow with submit and approval
+- **Reward Catalog** — Browse and redeem with points
+- **Analytics Charts** — Department and trend visualizations
+- **Admin Approval Inbox** — Review pending admin registrations
+- **Responsive Design** — Works on mobile and desktop
 
 ---
 
-## 📦 How to Clone and Setup
+## Environment Variables
 
-If you are setting this up on a new machine, follow these steps:
+| Variable       | Description                 
+|----------------|----------------------------  
+| `VITE_API_URL` | Backend API URL e.g. `https://employee-rewards.onrender.com/api` |
 
-### 1. Clone the Repository
+---
+
+## Scripts
+
 ```bash
-git clone https://github.com/Nithish258/piazza_full.git
-cd piazza_full
+npm run dev      # Start dev server at localhost:5173
+npm run build    # TypeScript check + Vite production build
+npm run preview  # Preview production build locally
+npm test         # Run Vitest test suite
+npm run lint     # ESLint check
 ```
 
-### 2. Environment Setup
-Create a `.env` file in `apps/api/`:
-```bash
-# apps/api/.env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/reward_system"
-REDIS_URL="redis://localhost:6379"
-JWT_SECRET="your_secret_key"
-```
+---
 
-### 3. Launch Services (Docker)
-Ensure Docker is running, then start the database and caching layers:
-```bash
-docker-compose up -d
-```
+## Deployment
 
-### 4. Run the App
-- **Windows**: Just run `run_me.bat`.
-- **Manual**:
-  - `cd apps/api && npm install && npx prisma db push && npm run dev`
-  - `cd apps/web && npm install && npm run dev`
+Deployed on **Vercel** with automatic deploys on every push to `main` branch.
+
+`vercel.json` enables React Router client-side routing:
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
 
 ---
 
-## 👤 Sample Credentials
+## Local Development
 
-| Role | Email | Password |
-|---|---|---|
-| **Super Admin** | `adminsample123@admin.com` | `admin123` |
-| **Staff Member** | `sampletest123@gmail.com` | `sample123` |
+```bash
+cd apps/web
+npm install
+npm run dev
+# Opens at http://localhost:5173
+```
 
+Make sure the backend is running at `http://localhost:4000` and set:
